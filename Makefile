@@ -4,11 +4,13 @@
 # Provide a default for no verbose output
 #HIDE ?= @
 
-PROGRAM ?= example-freertos-blinky
+PROGRAM ?= eetree-funpack-2-freertos
+MODULES ?= rgb-led
 
 OBJ_DIR ?= ./$(CONFIGURATION)/build
+MODULE_OBJ_DIR ?= $(MODULES:%=./$(CONFIGURATION)/build/%)
 
-C_SOURCES = $(wildcard *.c)
+C_SOURCES = $(wildcard *.c) $(foreach module,$(MODULES),$(wildcard $(module)/*.c))
 
 #     Add local include 
 override CFLAGS  += -I./
@@ -45,7 +47,7 @@ include $(FREERTOS_DIR)/scripts/FreeRTOS.mk
 export FREERTOS_CONFIG_DIR = $(abspath ./)
 MAKE_CONFIG += 	freeRTOS.define.portHANDLE_INTERRUPT = FreedomMetal_InterruptHandler \
 				freeRTOS.define.portHANDLE_EXCEPTION = FreedomMetal_ExceptionHandler 
-				
+
 ifeq ($(TARGET),sifive-hifive-unleashed)
 	MAKE_CONFIG += freeRTOS.define.MTIME_RATE_HZ = 1000000
 else
@@ -55,10 +57,10 @@ export HEAP = 4
 
 override CFLAGS +=      $(foreach dir,$(FREERTOS_INCLUDES),-I $(dir)) \
                                         -I $(FREERTOS_CONFIG_DIR) \
-                                        -I $(join $(abspath  $(BUILD_DIRECTORIES)),/FreeRTOS/include)
+                                        -I $(join $(abspath  $(OBJ_DIR)),/FreeRTOS/include)
 
 override LDLIBS += -lFreeRTOS
-override LDFLAGS += -L$(join $(abspath  $(BUILD_DIRECTORIES)),/FreeRTOS/lib)
+override LDFLAGS += -L$(join $(abspath  $(OBJ_DIR)),/FreeRTOS/lib)
 
 
 # ----------------------------------------------------------------------
@@ -100,6 +102,7 @@ $(OBJ_DIR)/%.o: %.cpp libfreertos
 # create dedicated directory for Object files
 # ----------------------------------------------------------------------
 BUILD_DIRECTORIES = \
+	$(MODULE_OBJ_DIR) \
 	$(OBJ_DIR) 
 
 # ----------------------------------------------------------------------
@@ -112,7 +115,7 @@ directories: $(BUILD_DIRECTORIES)
 
 libfreertos:
 	make -f Makefile -C \
-		$(FREERTOS_DIR) BUILD_DIR=$(join $(abspath  $(BUILD_DIRECTORIES)),/FreeRTOS) libFreeRTOS.a VERBOSE=$(VERBOSE)
+		$(FREERTOS_DIR) BUILD_DIR=$(join $(abspath  $(OBJ_DIR)),/FreeRTOS) libFreeRTOS.a VERBOSE=$(VERBOSE)
 
 $(PROGRAM): \
 	directories \
@@ -124,3 +127,9 @@ $(PROGRAM): \
 clean::
 	rm -rf $(BUILD_DIRECTORIES)
 	rm -f $(PROGRAM) $(PROGRAM).hex
+
+.PHONY: test-make
+test-make:
+	echo $(C_SOURCES)
+	echo $(MODULE_OBJ_DIR)
+	echo $(BUILD_DIRECTORIES)
