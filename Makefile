@@ -2,10 +2,10 @@
 # SPDX-License-Identifier: Apache-2.0 #
 
 # Provide a default for no verbose output
-#HIDE ?= @
+HIDE ?= @
 
 PROGRAM ?= eetree-funpack-2-freertos
-MODULES ?= rgb-led
+MODULES ?= oled rgb-led
 
 OBJ_DIR ?= ./$(CONFIGURATION)/build
 MODULE_OBJ_DIR ?= $(MODULES:%=./$(CONFIGURATION)/build/%)
@@ -128,8 +128,9 @@ clean::
 	rm -rf $(BUILD_DIRECTORIES)
 	rm -f $(PROGRAM) $(PROGRAM).hex
 
-.PHONY: test-make
-test-make:
+.PHONY: debug-makefile
+debug-makefile:
+	echo $(OBJS)
 	echo $(C_SOURCES)
 	echo $(MODULE_OBJ_DIR)
 	echo $(BUILD_DIRECTORIES)

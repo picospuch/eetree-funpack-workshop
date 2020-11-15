@@ -43,8 +43,11 @@
 #include <metal/interrupt.h>
 #include <metal/clock.h>
 #include <metal/led.h>
+#include <metal/spi.h>
+#include <metal/pwm.h>
 
 #include "rgb-led/rgb_led.h"
+#include "oled/oled.h"
 
 #define TASK_PRIORITY		(tskIDLE_PRIORITY + 1)
 
@@ -58,6 +61,7 @@ static void prvSetupHardware( void );
  */
 static void prvBlinkTask( void *pvParameters );
 static void prvOledTask( void *pvParameters );
+static void prvBlink2Task( void *pvParameters );
 /*-----------------------------------------------------------*/
 
 
@@ -65,9 +69,112 @@ static void prvOledTask( void *pvParameters );
 struct metal_cpu *cpu0;
 struct metal_interrupt *cpu_intr, *tmr_intr;
 struct metal_led *led0_red, *led0_green, *led0_blue;
+
 struct metal_gpio *gpio;
+struct metal_spi *spi;
+struct metal_spi_config *spi_config;
+struct metal_pwm *pwm;
 
 USE_UNIT_EPRINTF
+
+int oled_setup_hardware(void) {
+	/* Get SPI 1 */
+	spi = metal_spi_get_device(1);
+
+	if(spi == NULL) {
+		eprintf("Failed to get spi device\n");
+		return 1;
+	}
+
+	/* Initialize the SPI device to 100_000 baud */
+	metal_spi_init(spi, 1000000);
+
+	/* CPOL = 0, CPHA = 0, MSB-first, CS active low */
+	static struct metal_spi_config spi_config0 = {
+		.protocol = METAL_SPI_SINGLE,
+		.polarity = 0,
+		.phase = 0,
+		.little_endian = 0,
+		.cs_active_high = 0,
+		.csid = 0,
+	};
+	
+	spi_config = &spi_config0;
+
+	metal_gpio_enable_output(gpio, ARDUINO_SPI_MISO);
+	metal_gpio_disable_input(gpio, ARDUINO_SPI_MISO);
+	metal_gpio_disable_pinmux(gpio, ARDUINO_SPI_MISO);
+	metal_gpio_set_pin(gpio, ARDUINO_SPI_MISO, 0);
+
+	metal_gpio_enable_output(gpio, ARDUINO_SPI_CS);
+	metal_gpio_disable_input(gpio, ARDUINO_SPI_CS);
+	metal_gpio_disable_pinmux(gpio, ARDUINO_SPI_CS);
+	metal_gpio_set_pin(gpio, ARDUINO_SPI_CS, 0);
+
+	/* Transfer three bytes */
+	//char tx_buf[3] = {0x55, 0xAA, 0xA5};
+	//char rx_buf[3] = {0};
+	return 0;
+}
+
+void oled_dc_clear(void) {
+	// use arduino miso
+		metal_gpio_set_pin(gpio, ARDUINO_SPI_MISO, 0);
+}
+void oled_dc_set(void) {
+	// use arduino miso
+		metal_gpio_set_pin(gpio, ARDUINO_SPI_MISO, 1);
+}
+void oled_cs_clear(void) {
+	// use arduino cs
+		metal_gpio_set_pin(gpio, ARDUINO_SPI_CS, 0);
+
+}
+void oled_cs_set(void) {
+	// user arduino cs
+		metal_gpio_set_pin(gpio, ARDUINO_SPI_CS, 1);
+}
+void oled_rst_clear(void) {
+	// not used
+}
+void oled_rst_set(void) {
+	// not used
+}
+void oled_spi_transfer(uint8_t *dat, uint8_t len) {
+	// use hardware spi1
+	metal_spi_transfer(spi, spi_config, len, dat, NULL);
+}
+
+void delay_ms(u16 nms) {
+	// a freertos tick is 10ms.
+	vTaskDelay(nms / 10);
+}
+
+int do_oled(void) {
+    uint32_t display_row_num[4] = {OLED_DISPLAY_ROW_1, OLED_DISPLAY_ROW_2,
+    OLED_DISPLAY_ROW_3, OLED_DISPLAY_ROW_4};
+
+    char oled_show_line[4][OLED_DISPLAY_MAX_CHAR_PER_ROW + 1] =
+    { "hello", "eetree", "phase2", "funpack" };   // max char each line
+
+    // init OLED
+    OLED_Init();
+    OLED_FillAll();
+    OLED_Clear();
+
+		//		OLED_ShowString(OLED_DISPLAY_COLUMN_START, display_row_num[0], oled_show_line[0]);
+		
+		int d[4] = {0, 1, 2, 3};
+		int t = 0;
+		while (1) {
+			OLED_Clear();
+			for (int i = 0; i < 4; ++i) {
+				OLED_ShowString(OLED_DISPLAY_COLUMN_START, display_row_num[i], oled_show_line[d[i]]);
+			}
+			t = d[0]; d[0] = d[1]; d[1] = d[2]; d[2] = d[3]; d[3] = t;
+			delay_ms(1000);
+		}
+}
 
 /* light a rgb led.  */
 int do_led( void )
@@ -75,8 +182,21 @@ int do_led( void )
 	ext_rgb_led_log("rgb led conrtol demo(RGB_MODE)\r\n");
 	eprintf("do_led\r\n");
 
-  while(1)
-  {
+#define COLOR_MODE HSB_MODE
+
+#if (COLOR_MODE == HSB_MODE)
+	while(1) {
+    for (float i = 0; i < 10.0; i+=0.1) {
+			hsb2rgb_led_open(120, 100, i);
+			vTaskDelay(1);
+		}
+		for (float i = 10.0; i>=0; i-=0.1) {
+			hsb2rgb_led_open(120, 100, i);
+			vTaskDelay(1);
+		}
+  }
+#else
+  while(1) {
     /*open red led,#FF0000*/
     rgb_led_open(255, 0, 0);
     vTaskDelay(100);
@@ -87,6 +207,8 @@ int do_led( void )
     rgb_led_open(0, 0, 255);
 		vTaskDelay(100);
   }
+#endif
+	
 }
 
 int main( void )
@@ -97,7 +219,7 @@ int main( void )
 	eprintf("task type: %d, %d\r\n", configUSE_PREEMPTION, configUSE_TIME_SLICING);
 	eprintf("\r\n");
 	
-	TaskHandle_t xHandle_BlinkTask, xHandle_OledTask;
+	TaskHandle_t xHandle_BlinkTask, xHandle_OledTask, xHandle_Blink2Task;
 
 	prvSetupHardware();
 
@@ -111,12 +233,18 @@ int main( void )
 							 "oled",
 							 configMINIMAL_STACK_SIZE,
 							 NULL,
-							 TASK_PRIORITY,
+							 TASK_PRIORITY+1,
 							 &xHandle_OledTask);
+	xTaskCreate( prvBlink2Task,
+							 "blink2",
+							 configMINIMAL_STACK_SIZE,
+							 NULL,
+							 TASK_PRIORITY,
+							 &xHandle_Blink2Task);
 
 	/* Start the tasks and timer running. */
 	vTaskStartScheduler();
-
+	
 	/**
 	 * If all is well, the scheduler will now be running, and the following 
 	 * line will never be reached.  If the following line does execute, then 
@@ -126,10 +254,39 @@ int main( void )
 	 */
 	vTaskDelete( xHandle_BlinkTask );
 	vTaskDelete( xHandle_OledTask );
+	vTaskDelete( xHandle_Blink2Task );
 	
 	eprintf("\r\n\r\n===FreeRTOS END===\r\n\r\n");
 }
 
+static void prvBlink2Task( void *pvParameters ) {
+	USE_TASK_EPRINTF
+	eprintf("\r\n===in blink2 task===\r\n");
+
+	// ARDUINO_D6, PWM1_3
+	metal_pwm_enable(pwm);
+		
+	metal_pwm_set_freq(pwm, 3, 10000);
+
+	/* Set Duty cycle and phase correct mode */
+	metal_pwm_set_duty(pwm, 3, 90, METAL_PWM_PHASE_CORRECT_DISABLE);
+
+	/* Start in continuous mode */
+	metal_pwm_trigger(pwm, 3, METAL_PWM_CONTINUOUS);
+
+	while (1) {
+		for (int i = 0; i < 100; ++i) {
+			metal_pwm_set_duty(pwm, 3, i, METAL_PWM_PHASE_CORRECT_DISABLE);
+			delay_ms(10);
+		}
+		for (int i = 100; i > 0; --i) {
+			metal_pwm_set_duty(pwm, 3, i, METAL_PWM_PHASE_CORRECT_DISABLE);
+			delay_ms(10);
+		}
+	}
+	
+	for (;;) vTaskDelay(0);
+}
 
 static void prvBlinkTask( void *pvParameters ) {
 	USE_TASK_EPRINTF
@@ -144,14 +301,17 @@ static void prvOledTask( void *pvParameters ) {
   USE_TASK_EPRINTF
 	eprintf("\r\n===in oled task===\r\n");
 
+	do_oled();
 	// do not let it run into metal_shutdown!
 	// no tick interrupt will be triggered after that!
 	for (;;) vTaskDelay(0);
 }
 
 static void prvSetupHardware( void ) {
-
 	gpio = metal_gpio_get_device(0);
+
+	oled_setup_hardware();
+	
 	metal_gpio_enable_output(gpio, ARDUINO_SCL); // SCL
 	metal_gpio_disable_input(gpio, ARDUINO_SCL);
 	metal_gpio_disable_pinmux(gpio, ARDUINO_SCL);
@@ -161,14 +321,9 @@ static void prvSetupHardware( void ) {
 	metal_gpio_disable_input(gpio, ARDUINO_SDA);
 	metal_gpio_disable_pinmux(gpio, ARDUINO_SDA);
 	metal_gpio_set_pin(gpio, ARDUINO_SDA, 0);   
-   
 
+	pwm = metal_pwm_get_device(1);
 
-
-	/* This demo will toggle LEDs colors so we define them here */
-	//led0_red = metal_led_get_rgb("LD0", "red");
-	//	metal_led_enable(led0_red);
-	//		metal_led_on(led0_red);
 }
 
 void vApplicationMallocFailedHook( void )

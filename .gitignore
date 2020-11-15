@@ -1,0 +1,15 @@
+### this is my gitignore base.
+
+## ide
+/.idea/
+
+## mine
+/outbox/
+
+## macos
+.DS_Store
+._*
+
+## emacs
+*~
+\#*#
