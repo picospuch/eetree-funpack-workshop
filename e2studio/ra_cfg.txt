@@ -91,7 +91,7 @@ FSP Configuration
       P000 63 - - - Disabled - - "AGT1: AGTIO; CTSU0: TS16; GPT4: GTIOCB; ICU0: IRQ04; IIC0: SCL; KINT0: KRM0; SCI9: RXD; SCI9: SCL; SPI1: MISO" 
       P001 62 - - - Disabled - - "CTSU0: TS15; ICU0: IRQ00; RTC0: RTCOUT; SCI9: CTS; SPI1: RSPCK" 
       P002 61 - - - Disabled - - "ADC0: AN07; DAC81: DA; OPAMP2: AMP+" 
-      P003 60 - - - Disabled - - "ADC0: AN06; OPAMP2: AMP-" 
+      P003 60 ADC0_AN06 - - "Analog mode" - None "ADC0: AN06; OPAMP2: AMP-" 
       P012 55 ADC0_AN08 - - "Analog mode" - None "ADC0: AN08; OPAMP2: AMPO" 
       P013 54 - - - Disabled - - "ACMPHS0: IVCMP; ACMPHS0: IVREF; ADC0: AN05; DAC80: DA; GPT6: GTIOCB; OPAMP1: AMP+" 
       P014 53 - - - Disabled - - "ACMPHS0: IVREF; ADC0: AN04; ANALOG0: VREFL; GPT6: GTIOCA; OPAMP1: AMP-" 

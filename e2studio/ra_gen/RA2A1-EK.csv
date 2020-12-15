@@ -36,7 +36,7 @@ ADC0: AN04
 ANALOG0: VREFL
 GPT6: GTIOCA
 OPAMP1: AMP-"
-"P015","52","ADC0_AN03","","","Analog mode","","None","ADC0: AN03
+"P015","52","","","","Disabled","","","ADC0: AN03
 OPAMP1: AMPO"
 "P100","48","","","","Disabled","","","ACMPHS0: IVCMP
 ADC0: AN16
