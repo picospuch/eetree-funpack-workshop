@@ -164,7 +164,7 @@
   <v1:configSetting configurationId="p012" altId="p012.asel">
     <v1:connectionSetting altId="adc0.an08.p012"/>
   </v1:configSetting>
-  <v1:configSetting configurationId="adc0.an03" altId="adc0.an03.none"></v1:configSetting>
+  <v1:configSetting configurationId="adc0.an03" altId="adc0.an03.none"/>
   <v1:configSetting configurationId="adc0.an06" altId="adc0.an06.p003">
     <v1:connectionSetting altId="p003.asel"/>
   </v1:configSetting>

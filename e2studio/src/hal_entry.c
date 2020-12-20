@@ -52,10 +52,10 @@ usb_setup_t             usb_setup;
 
 /* Banner Info */
 char p_welcome[200] = {
-                       "\r\n Welcome to Quick Start BLINKY example project for "
+                       "\r\n Welcome to Quick Start BLINKY example project with RESISTOR FUNCTION for "
                        KIT_NAME_MACRO
                        "!"
-                       "\r\n Press 1 for Kit Information or 2 for Next Steps.\r\n"
+                       "\r\n Press 0 for Resistor Tester, Press 1 for Kit Information or 2 for Next Steps.\r\n"
 };
 
 /* Next steps */
@@ -74,14 +74,16 @@ char nextsteps[USB_EP_PACKET_SIZE] = {
                        PRODUCT_SUPPORT_URL
                        "\r\n d) Renesas support: \t\t"
                        RENESAS_SUPPORT_URL
-                       "\r\n\r\n Press 1 for Kit Information or 2 for Next Steps.\r\n"
+                       "\r\n\r\n Press 0 for Resistor Tester, Press 1 for Kit Information or 2 for Next Steps.\r\n"
 };
 
 char kitinfo[USB_EP_PACKET_SIZE] = {'\0'};
 
+char rtester[USB_EP_PACKET_SIZE] = {'\0'};
+
 const char *p_mcu_temp = "\r\n d) MCU Die temperature (F/C):  ";
 const char *p_led_freq = "\r\n c) Current blinking frequency (Hz): ";
-const char *p_kit_menu_ret = "\r\n Press 1 for Kit Information or 2 for Next Steps.\r\n";
+const char *p_kit_menu_ret = "\r\n Press 0 for Resistor Tester, Press 1 for Kit Information or 2 for Next Steps.\r\n";
 
 uint8_t g_usb_module_number = 0x00;
 usb_class_t g_usb_class_type    = 0x00;
@@ -90,6 +92,7 @@ usb_class_t g_usb_class_type    = 0x00;
 static fsp_err_t check_for_write_complete(void);
 static fsp_err_t print_to_console(char *p_data);
 static void process_kit_info(void);
+static void process_r_tester(void);
 
 /*******************************************************************************************************************//**
  * The RA Configuration tool generates main() and uses it to generate threads if an RTOS is used.  This function is
@@ -180,6 +183,11 @@ void hal_entry(void)
                 /* Switch case evaluation of user input */
                 switch (g_buf[0])
                 {
+								case R_TESTER:
+									{
+										process_r_tester();
+										break;
+									}
                     case KIT_INFO:
                     {
                         process_kit_info();
@@ -428,6 +436,68 @@ static void process_kit_info(void)
     }
 
 }
+
+uint16_t adch_data;
+uint16_t adcl_data;
+
+static void process_r_tester(void)
+{
+    uint16_t buffer_index_count = 0x0000;
+    uint16_t adc_data           = 0;
+		double adc0            = 0;
+    double adch            = 0;
+		double adcl            = 0;
+		double voltage        = 0;
+    double resistor            = 0;
+    fsp_err_t err = FSP_SUCCESS;
+
+		adch_data = 0;
+		adcl_data = 0;
+		
+    /* Read die temperature */
+
+		for (int i = 0; i < 3; ++i) {
+			adc_data = adc_reading();
+			adc0 = adch_data;
+			adch += adc0 / 3;
+			adc0 = adcl_data;
+			adcl += adc0 / 3;
+		}
+		
+		voltage = adcl / 32768.0 * 3.3;
+		resistor = adcl / (adch - adcl) * 10.0;
+
+    memset(rtester, '\0', 511);
+
+    buffer_index_count = 0U;
+
+    /* kit_processing_data is filled with led frequency details */
+    buffer_index_count =  ((uint16_t)(strlen(rtester))) ;
+
+    /* appends the data from current buffer_index_count */
+    sprintf((char *)&rtester[buffer_index_count],
+            "\r\n Resistor: %.02lfkOhm, Voltage: %.02fVolt, ADC_L: %.02f, ADC_H: %.02f",resistor, voltage, adcl, adch);
+
+    buffer_index_count  = 0U;
+
+    /* update index count */
+    buffer_index_count = ((uint16_t) (strlen(rtester)));
+
+    /* update index count */
+    sprintf((char*)&rtester[buffer_index_count],"\r\n%s",p_kit_menu_ret);
+
+    /* Print kit menu to console */
+    err = print_to_console(rtester);
+    /* Handle error*/
+    if (FSP_SUCCESS != err)
+    {
+        /* Turn ON RED LED to indicate fatal error */
+        TURN_RED_ON
+        APP_ERR_TRAP(err);
+    }
+
+}
+
 /*******************************************************************************************************************//**
  * @} (end addtogroup hal_entry)
  **********************************************************************************************************************/

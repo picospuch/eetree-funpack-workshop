@@ -27,6 +27,7 @@
 #define BLINK_FREQ_5HZ        (2400000)
 #define BLINK_FREQ_10HZ       (1200000)
 
+#define R_TESTER              ('0')
 #define KIT_INFO              ('1')
 #define NEXT_STEPS            ('2')
 #define CARRIAGE_RETURN       ('\r')

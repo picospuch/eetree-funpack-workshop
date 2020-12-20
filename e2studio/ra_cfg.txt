@@ -95,7 +95,7 @@ FSP Configuration
       P012 55 ADC0_AN08 - - "Analog mode" - None "ADC0: AN08; OPAMP2: AMPO" 
       P013 54 - - - Disabled - - "ACMPHS0: IVCMP; ACMPHS0: IVREF; ADC0: AN05; DAC80: DA; GPT6: GTIOCB; OPAMP1: AMP+" 
       P014 53 - - - Disabled - - "ACMPHS0: IVREF; ADC0: AN04; ANALOG0: VREFL; GPT6: GTIOCA; OPAMP1: AMP-" 
-      P015 52 ADC0_AN03 - - "Analog mode" - None "ADC0: AN03; OPAMP1: AMPO" 
+      P015 52 - - - Disabled - - "ADC0: AN03; OPAMP1: AMPO" 
       P100 48 - - - Disabled - - "ACMPHS0: IVCMP; ADC0: AN16; CTSU0: TS23; GPT5: GTIOCB; ICU0: IRQ04; SCI9: SDA; SCI9: TXD; SDADC0: ANSDP0" 
       P101 47 - - - Disabled - - "ACMPHS0: IVREF; ADC0: AN17; CTSU0: TS22; GPT5: GTIOCA; ICU0: IRQ05; SCI9: RXD; SCI9: SCL; SDADC0: ANSDN0" 
       P102 46 - - - Disabled - - "ADC0: AN18; CTSU0: TS21; GPT6: GTIOCB; SCI9: CTS; SDADC0: ANSDP1; SPI1: SSL0" 
@@ -202,7 +202,7 @@ FSP Configuration
       General: Clear after read: On
       General: Mode: Single Scan
       General: Double-trigger: Disabled
-      Input: Channel Scan Mask (channel availability varies by MCU): Channel 8, Temperature Sensor
+      Input: Channel Scan Mask (channel availability varies by MCU): Channel 4, Channel 6, Channel 8
       Input: Group B Scan Mask (channel availability varies by MCU): 
       Interrupts: Normal/Group A Trigger: Software
       Interrupts: Group B Trigger: Disabled

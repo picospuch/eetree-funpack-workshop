@@ -146,6 +146,9 @@ static fsp_err_t GPT_Initialize(void)
     return fsp_err;
 }
 
+extern uint16_t adch_data;
+extern uint16_t adcl_data;
+
 uint16_t adc_reading(void)
 {
     fsp_err_t err = FSP_SUCCESS;
@@ -163,13 +166,16 @@ uint16_t adc_reading(void)
     }while (ADC_STATE_IDLE != p_status.state);
 
     /* Read die temperature */
-    R_ADC_Read(g_adc.p_ctrl, ADC_CHANNEL_TEMPERATURE, &adc_data);
+		//    R_ADC_Read(g_adc.p_ctrl, ADC_CHANNEL_TEMPERATURE, &adc_data);
+		R_ADC_Read(g_adc.p_ctrl, ADC_CHANNEL_6, &adch_data);
+		R_ADC_Read(g_adc.p_ctrl, ADC_CHANNEL_8, &adcl_data);
 
     err = R_ADC_ScanStop(g_adc.p_ctrl);
     APP_ERR_TRAP(err);
 
-    return (adc_data);
+    return (adcl_data);
 }
+
 
 static fsp_err_t ADC_Initialize(void)
 {

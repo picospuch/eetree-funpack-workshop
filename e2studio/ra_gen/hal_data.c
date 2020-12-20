@@ -243,9 +243,12 @@ const adc_cfg_t g_adc_cfg =
 #endif
   .scan_end_b_ipl = (BSP_IRQ_DISABLED), };
 const adc_channel_cfg_t g_adc_channel_cfg =
-{ .scan_mask = ADC_MASK_CHANNEL_8 | ADC_MASK_TEMPERATURE | 0, .scan_mask_group_b = 0, .priority_group_a =
-          ADC_GROUP_A_PRIORITY_OFF,
-  .add_mask = 0, .sample_hold_mask = 0, .sample_hold_states = 24, };
+{ .scan_mask = ADC_MASK_CHANNEL_4 | ADC_MASK_CHANNEL_6 | ADC_MASK_CHANNEL_8 | 0,
+  .scan_mask_group_b = 0,
+  .priority_group_a = ADC_GROUP_A_PRIORITY_OFF,
+  .add_mask = 0,
+  .sample_hold_mask = 0,
+  .sample_hold_states = 24, };
 /* Instance structure to use this module. */
 const adc_instance_t g_adc =
 { .p_ctrl = &g_adc_ctrl, .p_cfg = &g_adc_cfg, .p_channel_cfg = &g_adc_channel_cfg, .p_api = &g_adc_on_adc };
