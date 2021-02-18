@@ -1,0 +1,32 @@
+{
+    "app_name": "CyberRadio",
+    "author": "Luigifcruz",
+    "main_module": "src/main/python/main.py",
+    "version": "0.0.0",
+    "extra_pyinstaller_args": [
+        "--hidden-import", "radio.tools.tuner",
+        "--hidden-import", "scipy.signal",
+        "--hidden-import", "sounddevice",
+        "--hidden-import", "scipy.special.cython_special",
+        "--hidden-import", "radio.tools.pll._core",
+        "--add-binary", "/usr/lib/*-linux-gnu/libxcb-xinerama.so.0.0.0:.",
+        "--add-binary", "/usr/lib/*-linux-gnu/libxcb-xinerama.so.0:.",
+        "--add-binary", "/usr/local/lib/libportaudio.so:.",
+        "--add-binary", "/usr/local/lib/libportaudio.so.2:.",
+        "--add-binary", "/usr/local/lib/libSoapySDR.so:./lib/sdr",
+        "--add-binary", "/usr/local/lib/libairspyhf.so:./lib/sdr",
+        "--add-binary", "/usr/local/lib/libLimeSuite.so:./lib/sdr",
+        "--add-binary", "/usr/local/lib/libairspy.so:./lib/sdr",
+        "--add-binary", "/usr/local/lib/librtlsdr.so:./lib/sdr",
+        "--add-binary", "/opt/local/lib/libSoapySDR.0.7.2.dylib:./lib/sdr",
+        "--add-binary", "/opt/local/lib/SoapySDR/modules0.7/*:./lib/modules",
+        "--exclude-module", "tk",
+        "--exclude-module", "matplotlib",
+        "--exclude-module", "IPython",
+        "--exclude-module", "notebook",
+        "--exclude-module", "PIL",
+        "--exclude-module", "ipykernel",
+        "--exclude-module", "jupyter_client",
+        "--exclude-module", "jupyter_core"
+    ]
+}

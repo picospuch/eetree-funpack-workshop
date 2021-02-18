@@ -1,7 +1,7 @@
-# using branch to hold different phase.
+# radio example for eetree funpack phase five
 
-## git clone example
+copied and modified from:
+https://github.com/luigifcruz/CyberRadio
 
-git clone -b phase-five https://github.com/picospuch/eetree-funpack-workshop.git
 
 

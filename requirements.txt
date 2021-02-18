@@ -1,0 +1,6 @@
+#pyqt5
+fbs
+radio-core
+numpy
+scipy
+sounddevice
