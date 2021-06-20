@@ -2,6 +2,4 @@
 
 ## git clone example
 
-git clone -b phase-six https://github.com/picospuch/eetree-funpack-workshop.git
-
-
+git clone -b phase-nine https://github.com/picospuch/eetree-funpack-workshop.git
