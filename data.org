@@ -1,0 +1,70 @@
+this file sketches a mask detection system.
+copyright (c) 2021 picospuch
+
+* 配置系统
+建立告警系统
+#+BEGIN_SRC emacs-lisp
+(alert-setup)
+(alert "WARNING!!!\nNON-MASKED PERSON\nFOUND!!!")
+#+END_SRC
+
+建立数据库
+#+name
+#+begin_src sqlite :db ~/tmp/test-sqlite.db
+drop table mask_record;
+create table mask_record(记录时间 timestamp, 总人数 int, 戴口罩 int, 没戴口罩 int);
+insert into mask_record values(strftime("%s", 'now'), 0, 0, 0);
+#+end_src
+
+#+RESULTS:
+
+* 采集数据
+#+BEGIN_SRC emacs-lisp
+;;(start-analysing)
+;;(stop-analysing)
+#+END_SRC
+
+* 开始告警
+#+BEGIN_SRC emacs-lisp
+(setq alert-timer-handle
+(run-at-time nil 5
+  (lambda ()
+    (let ((non-masked-person-count (nth 2 p/unitv-person-count)))
+      (if (> non-masked-person-count 0)
+        (alert (format "WARNING!!!\n%d NON-MASKED PERSON(S)\nFOUND!!!"
+          non-masked-person-count))))))
+)
+(cancel-timer alert-timer-handle)
+#+END_SRC
+
+* 记录数据
+#+BEGIN_SRC emacs-lisp
+(require 'emacsql-sqlite)
+(defvar db (emacsql-sqlite "~/tmp/test-sqlite.db"))
+
+(setq record-timer-handle
+(run-at-time nil 10
+  (lambda ()
+  ;; Insert some data:
+  (emacsql db [:insert-into mask_record :values $v1]
+    (vconcat (cons (truncate (float-time)) p/unitv-person-count)))
+  ))
+)
+(cancel-timer alert-timer-handle)
+#+END_SRC
+
+* 展示报表
+#+name
+#+begin_src sqlite :db ~/tmp/test-sqlite.db :colnames yes
+select strftime("%H:%M", datetime(记录时间, 'unixepoch')) as 分钟, avg(总人数), avg(戴口罩), avg(没戴口罩) from mask_record group by 分钟;
+#+end_src
+
+#+RESULTS:
+|  分钟 |      avg(总人数) |       avg(戴口罩) |    avg(没戴口罩) |
+|-------+------------------+-------------------+------------------|
+| 16:48 |              0.0 |               0.0 |              0.0 |
+| 16:52 | 2.16666666666667 | 0.666666666666667 |              1.5 |
+| 16:53 | 1.16666666666667 | 0.666666666666667 |              0.5 |
+| 16:54 |              1.0 |               1.0 |              0.0 |
+| 16:55 | 1.83333333333333 | 0.666666666666667 | 1.16666666666667 |
+| 16:56 |              4.0 |               1.0 |              3.0 |
