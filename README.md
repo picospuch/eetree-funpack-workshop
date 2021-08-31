@@ -2,4 +2,4 @@
 
 ## git clone example
 
-git clone -b yasnake-makecode https://github.com/picospuch/yasnake-makecode.git
+git clone https://github.com/picospuch/yasnake-makecode.git
